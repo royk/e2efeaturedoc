@@ -8,25 +8,35 @@ import (
 	"strings"
 )
 
+type Feature struct {
+	Name    string
+	subsets []string
+}
+
 // Extract test cases from the content
-func extractTestCases(content string) map[string][]string {
-	features := make(map[string][]string)
+func extractTestCases(content string) []Feature {
+	features := []Feature{}
 	describeRegex := regexp.MustCompile(`(?ms)describe\(["'](.*?)["'](.*?)`)
 	testRegex := regexp.MustCompile(`(?m)test\(["'](.*?)["'],`)
 	contentLines := strings.Split(content, "\n")
-	currentFeature := ""
+	var currentFeature *Feature
 	for _, line := range contentLines {
 		if strings.Contains(line, "describe") {
 			describeMatches := describeRegex.FindAllStringSubmatch(line, -1)
 			for _, describe := range describeMatches {
-				currentFeature = describe[1]
-				features[currentFeature] = []string{}
+				currentFeature = &Feature{
+					Name:    describe[1],
+					subsets: []string{},
+				}
+				currentFeature.Name = describe[1]
+				currentFeature.subsets = []string{}
+				features = append(features, *currentFeature)
 			}
 		}
 		if strings.Contains(line, "test") {
 			testMatches := testRegex.FindAllStringSubmatch(line, -1)
 			for _, test := range testMatches {
-				features[currentFeature] = append(features[currentFeature], test[1])
+				features[len(features)-1].subsets = append(features[len(features)-1].subsets, test[1])
 			}
 		}
 	}
@@ -52,9 +62,9 @@ func generateFeatureDoc(testDirectory string) (string, error) {
 			}
 
 			features := extractTestCases(string(content))
-			for feature, tests := range features {
-				docBuilder.WriteString(fmt.Sprintf("## Feature: %s\n\n", feature))
-				for _, test := range tests {
+			for _, feature := range features {
+				docBuilder.WriteString(fmt.Sprintf("## Feature: %s\n\n", feature.Name))
+				for _, test := range feature.subsets {
 					docBuilder.WriteString(fmt.Sprintf("- %s\n", test))
 				}
 				docBuilder.WriteString("\n")
