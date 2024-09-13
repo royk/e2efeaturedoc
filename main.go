@@ -15,8 +15,8 @@ type Feature struct {
 }
 
 // Extract test cases from the content
-func extractTestCases(content string) []Feature {
-	features := []Feature{}
+func extractTestCases(content string) Feature {
+	features := Feature{}
 	describeRegex := regexp.MustCompile(`(?ms)describe\(["'](.*?)["'](.*?)`)
 	testRegex := regexp.MustCompile(`(?m)test\(["'](.*?)["'],`)
 	contentLines := strings.Split(content, "\n")
@@ -29,13 +29,13 @@ func extractTestCases(content string) []Feature {
 					Name:    describe[1],
 					Subsets: []string{},
 				}
-				features = append(features, *currentFeature)
+				features.Subfeatures = append(features.Subfeatures, *currentFeature)
 			}
 		}
 		if strings.Contains(line, "test") {
 			testMatches := testRegex.FindAllStringSubmatch(line, -1)
 			for _, test := range testMatches {
-				features[len(features)-1].Subsets = append(features[len(features)-1].Subsets, test[1])
+				features.Subfeatures[len(features.Subfeatures)-1].Subsets = append(features.Subfeatures[len(features.Subfeatures)-1].Subsets, test[1])
 			}
 		}
 	}
@@ -43,11 +43,11 @@ func extractTestCases(content string) []Feature {
 	return features
 }
 
-func generateFeatureDocFromFeatures(features []Feature) (string, error) {
+func generateFeatureDocFromFeatures(features Feature) (string, error) {
 	var docBuilder strings.Builder
 
 	docBuilder.WriteString("# App Features Document\n\n")
-	for _, feature := range features {
+	for _, feature := range features.Subfeatures {
 		docBuilder.WriteString(fmt.Sprintf("## Feature: %s\n\n", feature.Name))
 		for _, test := range feature.Subsets {
 			docBuilder.WriteString(fmt.Sprintf("- %s\n", test))
@@ -59,7 +59,7 @@ func generateFeatureDocFromFeatures(features []Feature) (string, error) {
 
 // Generate the markdown document from the test files
 func generateFeatureDoc(testDirectory string) (string, error) {
-	features := []Feature{}
+	features := Feature{}
 	err := filepath.Walk(testDirectory, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -70,7 +70,8 @@ func generateFeatureDoc(testDirectory string) (string, error) {
 			if err != nil {
 				return err
 			}
-			features = append(features, extractTestCases(string(content))...)
+			extractedFeatures := extractTestCases(string(content))
+			features.Subfeatures = append(features.Subfeatures, extractedFeatures)
 		}
 
 		return nil

@@ -10,14 +10,17 @@ import (
 var _ = Describe("E2E Feature Documentation", func() {
 	Describe("Feature Doc Generation", func() {
 		It("Generates an MD doc file for a given feature set", func() {
-			features := []Feature{
-				{
-					Name:    "Feature 1",
-					Subsets: []string{"Test 1"},
-				},
-				{
-					Name:    "Feature 2",
-					Subsets: []string{"Test 2"},
+			features := Feature{
+				Name: "Root",
+				Subfeatures: []Feature{
+					{
+						Name:    "Feature 1",
+						Subsets: []string{"Test 1"},
+					},
+					{
+						Name:    "Feature 2",
+						Subsets: []string{"Test 2"},
+					},
 				},
 			}
 
@@ -39,20 +42,23 @@ var _ = Describe("E2E Feature Documentation", func() {
 				})
 			})
 			describe("Feature 2", func() {
-				test("Test 1", func() {
+				test("Test 2", func() {
 					Expect(1).To(Equal(1))
 				})
 			})
 		`
 			feature := extractTestCases(content)
-			Expect(feature).To(Equal([]Feature{
-				{
-					Name:    "Feature 1",
-					Subsets: []string{"Test 1"},
-				},
-				{
-					Name:    "Feature 2",
-					Subsets: []string{"Test 1"},
+			Expect(feature).To(Equal(Feature{
+				Name: "",
+				Subfeatures: []Feature{
+					{
+						Name:    "Feature 1",
+						Subsets: []string{"Test 1"},
+					},
+					{
+						Name:    "Feature 2",
+						Subsets: []string{"Test 2"},
+					},
 				},
 			}))
 		})
