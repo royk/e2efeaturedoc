@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -15,14 +17,17 @@ var _ = Describe("E2E Feature Documentation", func() {
 				},
 				{
 					Name:    "Feature 2",
-					subsets: []string{"Test 1"},
+					subsets: []string{"Test 2"},
 				},
 			}
 
 			doc, err := generateFeatureDocFromFeatures(features)
 			Expect(err).To(BeNil())
-			Expect(doc).To(ContainSubstring("Feature 1"))
-			Expect(doc).To(ContainSubstring("Feature 2"))
+			// strip the header by popping it
+			docLines := strings.Split(doc, "\n")
+			docLines = docLines[2:]
+			doc = strings.Join(docLines, "\n")
+			Expect(doc).To(Equal("## Feature: Feature 1\n\n- Test 1\n\n## Feature: Feature 2\n\n- Test 2\n\n"))
 		})
 	})
 	Describe("Feature listing", func() {

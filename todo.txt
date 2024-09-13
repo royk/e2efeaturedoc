@@ -1,6 +1,7 @@
 TODO
 ~~~~
-Test md doc generation
 Nested features support
 Setup playwright
-
+Define document title
+Define document output folder
+Add CI
