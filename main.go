@@ -11,22 +11,23 @@ import (
 // Extract test cases from the content
 func extractTestCases(content string) map[string][]string {
 	features := make(map[string][]string)
-
-	describeRegex := regexp.MustCompile(`(?m)describe\(["'](.*?)["'],`)
-	testRegex := regexp.MustCompile(`(?m)test\(["'](.*?)["'],`)
-
-	describeMatches := describeRegex.FindAllStringSubmatch(content, -1)
-	testMatches := testRegex.FindAllStringSubmatch(content, -1)
-
-	var currentFeature string
-	if len(describeMatches) > 0 {
-		currentFeature = describeMatches[0][1]
-		features[currentFeature] = []string{}
-	}
-
-	for _, test := range testMatches {
-		if currentFeature != "" {
-			features[currentFeature] = append(features[currentFeature], test[1])
+	contentLines := strings.Split(content, "\n")
+	currentFeature := ""
+	for _, line := range contentLines {
+		if strings.Contains(line, "describe") {
+			describeRegex := regexp.MustCompile(`(?ms)describe\(["'](.*?)["'](.*?)`)
+			describeMatches := describeRegex.FindAllStringSubmatch(line, -1)
+			for _, describe := range describeMatches {
+				currentFeature = describe[1]
+				features[currentFeature] = []string{}
+			}
+		}
+		if strings.Contains(line, "test") {
+			testRegex := regexp.MustCompile(`(?m)test\(["'](.*?)["'],`)
+			testMatches := testRegex.FindAllStringSubmatch(line, -1)
+			for _, test := range testMatches {
+				features[currentFeature] = append(features[currentFeature], test[1])
+			}
 		}
 	}
 
