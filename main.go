@@ -14,7 +14,6 @@ type Feature struct {
 	Subfeatures []*Feature
 }
 
-// Extract test cases from the content
 func extractTestCases(content string) Feature {
 	root := &Feature{
 		Name:        "",
@@ -25,7 +24,6 @@ func extractTestCases(content string) Feature {
 	testRegex := regexp.MustCompile(`(?m)test\(["'](.*?)["'],`)
 	contentLines := strings.Split(content, "\n")
 	currentContextDepth := 0
-	currentFeatureDepth := 0
 	var currentFeature = root
 	for _, line := range contentLines {
 		if strings.Contains(line, "{") {
@@ -43,14 +41,12 @@ func extractTestCases(content string) Feature {
 					Subsets:     []string{},
 					Subfeatures: []*Feature{},
 				}
-				// find the current feature from root based on currentContextDepth
 				currentFeature = root
 				for i := 1; i < currentContextDepth; i++ {
 					currentFeature = currentFeature.Subfeatures[0]
 				}
 				currentFeature.Subfeatures = append(currentFeature.Subfeatures, nextFeature)
 				currentFeature = nextFeature
-				currentFeatureDepth++
 			}
 		}
 		if strings.Contains(line, "test") {
@@ -78,7 +74,6 @@ func generateFeatureDocFromFeatures(features Feature) (string, error) {
 	return docBuilder.String(), nil
 }
 
-// Generate the markdown document from the test files
 func generateFeatureDoc(testDirectory string) (string, error) {
 	features := Feature{}
 	err := filepath.Walk(testDirectory, func(path string, info os.FileInfo, err error) error {
@@ -106,7 +101,7 @@ func generateFeatureDoc(testDirectory string) (string, error) {
 }
 
 func main() {
-	testDirectory := "./tests" // Adjust this to your test folder
+	testDirectory := "./tests"
 	doc, err := generateFeatureDoc(testDirectory)
 	if err != nil {
 		fmt.Println("Error generating document:", err)
