@@ -11,36 +11,57 @@ import (
 type Feature struct {
 	Name        string
 	Subsets     []string
-	Subfeatures []Feature
+	Subfeatures []*Feature
 }
 
 // Extract test cases from the content
 func extractTestCases(content string) Feature {
-	features := Feature{}
+	root := &Feature{
+		Name:        "",
+		Subsets:     []string{},
+		Subfeatures: []*Feature{},
+	}
 	describeRegex := regexp.MustCompile(`(?ms)describe\(["'](.*?)["'](.*?)`)
 	testRegex := regexp.MustCompile(`(?m)test\(["'](.*?)["'],`)
 	contentLines := strings.Split(content, "\n")
-	var currentFeature *Feature
+	currentContextDepth := 0
+	currentFeatureDepth := 0
+	var currentFeature = root
 	for _, line := range contentLines {
+		if strings.Contains(line, "{") {
+			currentContextDepth++
+		}
+		if strings.Contains(line, "}") {
+			currentContextDepth--
+		}
 		if strings.Contains(line, "describe") {
 			describeMatches := describeRegex.FindAllStringSubmatch(line, -1)
-			for _, describe := range describeMatches {
-				currentFeature = &Feature{
-					Name:    describe[1],
-					Subsets: []string{},
+			if len(describeMatches) > 0 {
+				describe := describeMatches[0][1]
+				nextFeature := &Feature{
+					Name:        describe,
+					Subsets:     []string{},
+					Subfeatures: []*Feature{},
 				}
-				features.Subfeatures = append(features.Subfeatures, *currentFeature)
+				// find the current feature from root based on currentContextDepth
+				currentFeature = root
+				for i := 1; i < currentContextDepth; i++ {
+					currentFeature = currentFeature.Subfeatures[0]
+				}
+				currentFeature.Subfeatures = append(currentFeature.Subfeatures, nextFeature)
+				currentFeature = nextFeature
+				currentFeatureDepth++
 			}
 		}
 		if strings.Contains(line, "test") {
 			testMatches := testRegex.FindAllStringSubmatch(line, -1)
 			for _, test := range testMatches {
-				features.Subfeatures[len(features.Subfeatures)-1].Subsets = append(features.Subfeatures[len(features.Subfeatures)-1].Subsets, test[1])
+				currentFeature.Subsets = append(currentFeature.Subsets, test[1])
 			}
 		}
 	}
 
-	return features
+	return *root
 }
 
 func generateFeatureDocFromFeatures(features Feature) (string, error) {
@@ -71,7 +92,7 @@ func generateFeatureDoc(testDirectory string) (string, error) {
 				return err
 			}
 			extractedFeatures := extractTestCases(string(content))
-			features.Subfeatures = append(features.Subfeatures, extractedFeatures)
+			features.Subfeatures = append(features.Subfeatures, &extractedFeatures)
 		}
 
 		return nil

@@ -12,7 +12,7 @@ var _ = Describe("E2E Feature Documentation", func() {
 		It("Generates an MD doc file for a given feature set", func() {
 			features := Feature{
 				Name: "Root",
-				Subfeatures: []Feature{
+				Subfeatures: []*Feature{
 					{
 						Name:    "Feature 1",
 						Subsets: []string{"Test 1"},
@@ -48,22 +48,17 @@ var _ = Describe("E2E Feature Documentation", func() {
 			})
 		`
 			feature := extractTestCases(content)
-			Expect(feature).To(Equal(Feature{
-				Name: "",
-				Subfeatures: []Feature{
-					{
-						Name:    "Feature 1",
-						Subsets: []string{"Test 1"},
-					},
-					{
-						Name:    "Feature 2",
-						Subsets: []string{"Test 2"},
-					},
-				},
-			}))
+			Expect(feature.Subsets).To(BeEmpty())
+			Expect(feature.Subfeatures[0].Name).To(Equal("Feature 1"))
+			Expect(len(feature.Subfeatures[0].Subsets)).To(Equal(1))
+			Expect(feature.Subfeatures[0].Subsets[0]).To(Equal("Test 1"))
+			Expect(len(feature.Subfeatures[0].Subfeatures)).To(Equal(0))
+			Expect(feature.Subfeatures[1].Name).To(Equal("Feature 2"))
+			Expect(len(feature.Subfeatures[1].Subsets)).To(Equal(1))
+			Expect(feature.Subfeatures[1].Subsets[0]).To(Equal("Test 2"))
+			Expect(len(feature.Subfeatures[1].Subfeatures)).To(Equal(0))
 		})
 		It("Extracts nested features", func() {
-			Skip("Not implemented")
 			content := `
 			describe("Feature 1", func() {
 				describe("Feature 1.1", func() {
@@ -73,17 +68,15 @@ var _ = Describe("E2E Feature Documentation", func() {
 				})
 			})`
 			feature := extractTestCases(content)
-			Expect(feature).To(Equal(Feature{
-				Name:    "Feature 1",
-				Subsets: []string{},
-				Subfeatures: []Feature{
-					{
-						Name:        "Feature 1.1",
-						Subsets:     []string{"Test 1"},
-						Subfeatures: []Feature{},
-					},
-				},
-			}))
+			Expect(feature.Subsets).To(BeEmpty())
+			Expect(feature.Subfeatures[0].Name).To(Equal("Feature 1"))
+			Expect(feature.Subfeatures[0].Subsets).To(BeEmpty())
+
+			Expect(feature.Subfeatures[0].Subfeatures[0].Name).To(Equal("Feature 1.1"))
+			Expect(feature.Subfeatures[0].Subfeatures[0].Subsets[0]).To(Equal("Test 1"))
+			Expect(len(feature.Subfeatures[0].Subfeatures[0].Subsets)).To(Equal(1))
+			Expect(len(feature.Subfeatures[0].Subfeatures[0].Subfeatures)).To(Equal(0))
+
 		})
 	})
 })
