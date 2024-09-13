@@ -7,23 +7,23 @@ import (
 
 var _ = Describe("E2E Feature Documentation", func() {
 	Describe("Feature Doc Generation", func() {
-		// It("Generates an MD doc file for a given feature set", func() {
-		// 	features := []Feature{
-		// 		{
-		// 			Name:    "Feature 1",
-		// 			subsets: []string{"Test 1"},
-		// 		},
-		// 		{
-		// 			Name:    "Feature 2",
-		// 			subsets: []string{"Test 1"},
-		// 		},
-		// 	}
+		It("Generates an MD doc file for a given feature set", func() {
+			features := []Feature{
+				{
+					Name:    "Feature 1",
+					subsets: []string{"Test 1"},
+				},
+				{
+					Name:    "Feature 2",
+					subsets: []string{"Test 1"},
+				},
+			}
 
-		// 	doc, err := generateFeatureDoc(features)
-		// 	Expect(err).To(BeNil())
-		// 	Expect(doc).To(ContainSubstring("Feature 1"))
-		// 	Expect(doc).To(ContainSubstring("Feature 2"))
-		// })
+			doc, err := generateFeatureDocFromFeatures(features)
+			Expect(err).To(BeNil())
+			Expect(doc).To(ContainSubstring("Feature 1"))
+			Expect(doc).To(ContainSubstring("Feature 2"))
+		})
 	})
 	Describe("Feature listing", func() {
 		It("Extracts feature list from Describe blocks", func() {

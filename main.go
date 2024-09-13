@@ -44,12 +44,23 @@ func extractTestCases(content string) []Feature {
 	return features
 }
 
-// Generate the markdown document from the test files
-func generateFeatureDoc(testDirectory string) (string, error) {
+func generateFeatureDocFromFeatures(features []Feature) (string, error) {
 	var docBuilder strings.Builder
 
 	docBuilder.WriteString("# App Features Document\n\n")
+	for _, feature := range features {
+		docBuilder.WriteString(fmt.Sprintf("## Feature: %s\n\n", feature.Name))
+		for _, test := range feature.subsets {
+			docBuilder.WriteString(fmt.Sprintf("- %s\n", test))
+		}
+		docBuilder.WriteString("\n")
+	}
+	return docBuilder.String(), nil
+}
 
+// Generate the markdown document from the test files
+func generateFeatureDoc(testDirectory string) (string, error) {
+	features := []Feature{}
 	err := filepath.Walk(testDirectory, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -60,15 +71,7 @@ func generateFeatureDoc(testDirectory string) (string, error) {
 			if err != nil {
 				return err
 			}
-
-			features := extractTestCases(string(content))
-			for _, feature := range features {
-				docBuilder.WriteString(fmt.Sprintf("## Feature: %s\n\n", feature.Name))
-				for _, test := range feature.subsets {
-					docBuilder.WriteString(fmt.Sprintf("- %s\n", test))
-				}
-				docBuilder.WriteString("\n")
-			}
+			features = append(features, extractTestCases(string(content))...)
 		}
 
 		return nil
@@ -78,7 +81,7 @@ func generateFeatureDoc(testDirectory string) (string, error) {
 		return "", err
 	}
 
-	return docBuilder.String(), nil
+	return generateFeatureDocFromFeatures(features)
 }
 
 func main() {
