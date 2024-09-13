@@ -9,8 +9,9 @@ import (
 )
 
 type Feature struct {
-	Name    string
-	subsets []string
+	Name        string
+	Subsets     []string
+	Subfeatures []Feature
 }
 
 // Extract test cases from the content
@@ -26,17 +27,15 @@ func extractTestCases(content string) []Feature {
 			for _, describe := range describeMatches {
 				currentFeature = &Feature{
 					Name:    describe[1],
-					subsets: []string{},
+					Subsets: []string{},
 				}
-				currentFeature.Name = describe[1]
-				currentFeature.subsets = []string{}
 				features = append(features, *currentFeature)
 			}
 		}
 		if strings.Contains(line, "test") {
 			testMatches := testRegex.FindAllStringSubmatch(line, -1)
 			for _, test := range testMatches {
-				features[len(features)-1].subsets = append(features[len(features)-1].subsets, test[1])
+				features[len(features)-1].Subsets = append(features[len(features)-1].Subsets, test[1])
 			}
 		}
 	}
@@ -50,7 +49,7 @@ func generateFeatureDocFromFeatures(features []Feature) (string, error) {
 	docBuilder.WriteString("# App Features Document\n\n")
 	for _, feature := range features {
 		docBuilder.WriteString(fmt.Sprintf("## Feature: %s\n\n", feature.Name))
-		for _, test := range feature.subsets {
+		for _, test := range feature.Subsets {
 			docBuilder.WriteString(fmt.Sprintf("- %s\n", test))
 		}
 		docBuilder.WriteString("\n")

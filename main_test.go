@@ -13,11 +13,11 @@ var _ = Describe("E2E Feature Documentation", func() {
 			features := []Feature{
 				{
 					Name:    "Feature 1",
-					subsets: []string{"Test 1"},
+					Subsets: []string{"Test 1"},
 				},
 				{
 					Name:    "Feature 2",
-					subsets: []string{"Test 2"},
+					Subsets: []string{"Test 2"},
 				},
 			}
 
@@ -48,11 +48,11 @@ var _ = Describe("E2E Feature Documentation", func() {
 			Expect(feature).To(Equal([]Feature{
 				{
 					Name:    "Feature 1",
-					subsets: []string{"Test 1"},
+					Subsets: []string{"Test 1"},
 				},
 				{
 					Name:    "Feature 2",
-					subsets: []string{"Test 1"},
+					Subsets: []string{"Test 1"},
 				},
 			}))
 		})
@@ -67,9 +67,16 @@ var _ = Describe("E2E Feature Documentation", func() {
 				})
 			})`
 			feature := extractTestCases(content)
-			Expect(feature).To(Equal(map[string][]string{
-				"Feature 1":   {"Feature 1.1"},
-				"Feature 1.1": {"Test 1"},
+			Expect(feature).To(Equal(Feature{
+				Name:    "Feature 1",
+				Subsets: []string{},
+				Subfeatures: []Feature{
+					{
+						Name:        "Feature 1.1",
+						Subsets:     []string{"Test 1"},
+						Subfeatures: []Feature{},
+					},
+				},
 			}))
 		})
 	})
